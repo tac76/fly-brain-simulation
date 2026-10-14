@@ -11,7 +11,7 @@ def test_from_edges_builds_pre_major_csr(tiny_connectome):
     s, e = c.pre_indptr[0], c.pre_indptr[1]
     assert list(c.post_idx[s:e]) == [1]
     s, e = c.pre_indptr[3], c.pre_indptr[4]
-    assert list(c.weight_syn[s:e]) == [-60.0]
+    assert list(c.weight_syn[s:e]) == [-250.0]
 
 
 def test_indices_by_type(tiny_connectome):

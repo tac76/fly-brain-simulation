@@ -3,7 +3,7 @@ import pytest
 
 from flybrain.connectome import Connectome
 
-STRONG = 60.0  # synapses; one presynaptic spike reliably drives the target (0.275 mV each)
+STRONG = 250.0  # synapses: g jump 68.75 mV peaks v at ~+10.8 mV > 7 mV threshold gap
 
 
 @pytest.fixture
