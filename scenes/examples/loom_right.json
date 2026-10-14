@@ -1,0 +1,28 @@
+{
+  "duration_s": 3,
+  "seed": 1,
+  "fly": {
+    "pos": [
+      0,
+      0
+    ],
+    "heading_deg": 0
+  },
+  "shadow": {
+    "size_mm": 8,
+    "speed_mm_s": 40,
+    "path": [
+      [
+        0,
+        -30,
+        10
+      ],
+      [
+        0,
+        0,
+        3
+      ]
+    ]
+  },
+  "environment": "tabletop"
+}
