@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 import mujoco
 import numpy as np
+from dm_control.rl.control import PhysicsError
 from flygym import Fly
 from flygym.arena import FlatTerrain
 from flygym.examples.locomotion import HybridTurningController
@@ -50,17 +51,24 @@ class FlyBody:
         physics = self.sim.physics
         model = self.fly.model
         self._thorax = physics.bind(model.find("body", "Thorax"))
-        self._head = physics.bind(model.find("body", "Head"))
-        self._eyes = physics.bind([model.find("body", "LEye"), model.find("body", "REye")])
+        # Eye and head positions come from the mesh geoms: the LEye/REye *bodies* have their
+        # origin at the head joint, so both would report the same point.
+        self._head = physics.bind(model.find("geom", "Head"))
+        self._eyes = physics.bind([model.find("geom", "LEye"), model.find("geom", "REye")])
         mesh_geoms = [g for g in model.find_all("geom") if g.mesh is not None]
         self.part_names: list[str] = [g.name for g in mesh_geoms]
         self._geoms = physics.bind(mesh_geoms)
         self._flipped = False
+        self._blown_up = False
 
     def step(self, drive: np.ndarray, n_steps: int) -> BodyState:
         action = np.asarray(drive, dtype=float)
         for _ in range(n_steps):
-            _, _, terminated, _, info = self.sim.step(action)
+            try:
+                _, _, terminated, _, info = self.sim.step(action)
+            except PhysicsError:  # MuJoCo detected an unstable state (e.g. NaN/huge velocities)
+                self._blown_up = True
+                break
             if terminated or info.get("flip", False):
                 self._flipped = True
                 break
@@ -74,7 +82,9 @@ class FlyBody:
         thorax = np.array(self._thorax.xpos, dtype=float)
         head = np.array(self._head.xpos, dtype=float)
         eyes = np.array(self._eyes.xpos, dtype=float)
-        finite = bool(np.isfinite(thorax).all() and np.isfinite(self._geoms.xpos).all())
+        finite = not self._blown_up and bool(
+            np.isfinite(thorax).all() and np.isfinite(self._geoms.xpos).all()
+        )
         return BodyState(thorax, head, eyes[0], eyes[1], fwd, self._flipped, finite)
 
     def part_poses(self) -> np.ndarray:

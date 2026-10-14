@@ -24,6 +24,12 @@ def test_example_scene_loads():
         ({"shadow": {"path": [[10, 0, 3], [10, 0, 3]]}}, "path"),
         ({"shadow": {"size_mm": 0}}, "size_mm"),
         ({"environment": "space"}, "environment"),
+        ({"duration_s": 0.01}, "duration_s"),
+        ({"seed": 2**32}, "seed"),
+        ({"fly": {"pos": [float("nan"), 0]}}, "pos"),
+        ({"fly": {"heading_deg": float("inf")}}, "heading_deg"),
+        ({"shadow": {"path": [[0, 0, 5], [float("inf"), 0, 5]]}}, "path"),
+        ({"shadow": {"speed_mm_s": float("inf")}}, "speed_mm_s"),
     ],
 )
 def test_invalid_scene_rejected(patch, field):

@@ -38,3 +38,8 @@ UTF-8 JSON object `{name: [value per frame]}`; values are numbers (rounded to 6 
 lists of numbers. Brain runs write: `threat_x`, `threat_y`, `threat_z`, `theta_left_deg`,
 `theta_right_deg`, `input_left_hz`, `input_right_hz`, `dna_left_hz`, `dna_right_hz`, `gf_hz`,
 `drive_left`, `drive_right`, `active_neurons`.
+
+Timing: `threat_*` is the threat position at the frame's time (end of the interval), matching
+`body.bin`. `theta_*` and `input_*` were computed at the start of the interval and drove the brain
+during it; `dna_*`, `gf_hz`, `active_neurons` and `drive_*` are the brain's output over the
+interval.

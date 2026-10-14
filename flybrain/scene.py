@@ -4,21 +4,21 @@ import math
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, FiniteFloat, field_validator
 
 from flybrain.config import Config
 
-Point3 = tuple[float, float, float]
+Point3 = tuple[FiniteFloat, FiniteFloat, FiniteFloat]
 
 
 class FlyStart(BaseModel):
-    pos: tuple[float, float] = (0.0, 0.0)
-    heading_deg: float = 0.0
+    pos: tuple[FiniteFloat, FiniteFloat] = (0.0, 0.0)
+    heading_deg: FiniteFloat = 0.0
 
 
 class Threat(BaseModel):
-    size_mm: float = Field(gt=0, description="diameter of the looming object")
-    speed_mm_s: float = Field(gt=0)
+    size_mm: float = Field(gt=0, allow_inf_nan=False, description="diameter of the threat")
+    speed_mm_s: float = Field(gt=0, allow_inf_nan=False)
     path: list[Point3] = Field(min_length=2, max_length=4)
 
     @field_validator("path")
@@ -34,8 +34,8 @@ class Threat(BaseModel):
 
 
 class Scene(BaseModel):
-    duration_s: float = Field(gt=0, le=10)
-    seed: int = Field(ge=0)
+    duration_s: float = Field(ge=0.02, le=10, description="at least one 20 ms frame")
+    seed: int = Field(ge=0, le=2**32 - 1)
     fly: FlyStart = FlyStart()
     shadow: Threat
     environment: Literal["tabletop"] = "tabletop"

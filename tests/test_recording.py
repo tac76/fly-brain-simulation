@@ -56,3 +56,17 @@ def test_wrong_pose_shape_rejected(tmp_path):
     w = RecordingWriter(tmp_path, {}, ["a", "b"])
     with pytest.raises(ValueError, match="poses"):
         w.append(np.zeros((3, 7), np.float32), np.array([], np.uint32), {})
+
+
+def test_stale_files_from_previous_run_are_replaced(tmp_path):
+    _write(tmp_path, n_frames=3)
+    w = RecordingWriter(tmp_path, {}, ["a", "b"])  # new run into the same folder, then crash
+    assert not (tmp_path / "meta.json").exists()
+    del w
+
+
+def test_nan_signal_rejected(tmp_path):
+    w = RecordingWriter(tmp_path, {}, ["a"])
+    w.append(np.zeros((1, 7), np.float32), np.array([], np.uint32), {"x": float("nan")})
+    with pytest.raises(ValueError):
+        w.close("complete")

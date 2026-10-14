@@ -68,3 +68,50 @@ def test_fly_outside_arena_rejected_before_running(tmp_path):
     with pytest.raises(ValueError, match="arena"):
         scene = scene_with(fly={"pos": [100, 0]})
         run_scene(scene, load_config(), ConstantController((1, 1)), tmp_path)
+
+
+def test_physics_blowup_mid_run_saves_aborted_recording(tmp_path, monkeypatch):
+    import flybrain.loop as loop
+
+    class ExplodingBody(loop.FlyBody):
+        calls = 0
+
+        def step(self, drive, n_steps):
+            ExplodingBody.calls += 1
+            if ExplodingBody.calls == 3:
+                self.sim.physics.data.qvel[:] = 1e30
+            return super().step(drive, n_steps)
+
+    monkeypatch.setattr(loop, "FlyBody", ExplodingBody)
+    r = run_scene(SHORT, load_config(), ConstantController((1, 1)), tmp_path)
+    assert r.status == "aborted" and r.reason == "non_finite"
+    meta = read_recording(tmp_path).meta
+    assert meta["status"] == "aborted" and meta["n_frames"] == r.n_frames == 3
+
+
+def test_controller_error_saves_aborted_recording_and_reraises(tmp_path):
+    class Failing(ConstantController):
+        n = 0
+
+        def drive(self, t_s, body):
+            Failing.n += 1
+            if Failing.n == 3:
+                raise RuntimeError("boom")
+            return super().drive(t_s, body)
+
+    with pytest.raises(RuntimeError, match="boom"):
+        run_scene(SHORT, load_config(), Failing((1, 1)), tmp_path)
+    meta = read_recording(tmp_path).meta
+    assert meta["status"] == "aborted" and meta["reason"] == "error: RuntimeError: boom"
+    assert meta["n_frames"] == 2
+
+
+def test_threat_signal_is_at_frame_time(tmp_path, fixture_connectome):
+    from flybrain.stimulus import threat_position
+
+    ctrl = make_brain_controller(LOUD, load_config(), fixture_connectome)
+    run_scene(LOUD, load_config(), ctrl, tmp_path)
+    s = read_recording(tmp_path).signals
+    # frame k shows the state at the end of interval k, i.e. t = (k + 1) * 0.02
+    expected = threat_position(LOUD.shadow, 3 * 0.02)
+    assert [s["threat_x"][2], s["threat_y"][2], s["threat_z"][2]] == pytest.approx(expected)

@@ -17,8 +17,13 @@ Every 20 ms the simulation:
 5. steps the physically simulated body (FlyGym / NeuroMechFly, MuJoCo), whose legs are moved by
    a built-in gait controller.
 
-The decision to turn away and run comes from the brain model; stimulus encoding, motor mapping
-and the gait are hand-built and labelled as such.
+Turning away and speeding up are driven by the brain model's output. Stimulus encoding, motor
+mapping and the gait are hand-built. Walking itself is a default: with a silent brain the fly
+walks straight at a constant drive. That is not a decision of the brain.
+
+**Current state of the escape:** the response has the right direction on both sides but is still
+small. The encoding and mapping constants are not calibrated yet. Turns are measured against a
+no-brain run of the same scene, because the gait alone drifts by a few degrees.
 
 ## Quick start
 

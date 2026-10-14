@@ -31,3 +31,18 @@ def test_part_poses_shape_and_unit_quaternions():
 def test_spawn_position_respected():
     b = FlyBody(FlyStart(pos=(5, -3), heading_deg=0), seed=0)
     assert np.allclose(b.state().thorax[:2], [5, -3], atol=0.5)
+
+
+def test_eye_positions_are_separated():
+    b = FlyBody(FlyStart(pos=(0, 0), heading_deg=0), seed=0)
+    s = b.state()
+    assert s.eye_left[1] - s.eye_right[1] > 0.4  # left eye on +y at heading 0
+    assert s.head[0] > s.thorax[0]
+
+
+def test_physics_blowup_returns_non_finite_instead_of_raising():
+    b = FlyBody(FlyStart(pos=(0, 0), heading_deg=0), seed=0)
+    b.step(np.array([1.0, 1.0]), 10)
+    b.sim.physics.data.qvel[:] = 1e30
+    s = b.step(np.array([1.0, 1.0]), 50)
+    assert not s.finite

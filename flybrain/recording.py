@@ -15,6 +15,7 @@ import numpy as np
 
 FORMAT_VERSION = 1
 FPS = 50
+RECORDING_FILES = ("meta.json", "body.bin", "spikes.bin", "signals.json")
 
 
 def _clean(value: Any) -> Any:
@@ -33,13 +34,16 @@ def _clean(value: Any) -> Any:
 
 
 def _dump(path: Path, data: dict) -> None:
-    path.write_text(json.dumps(_clean(data), sort_keys=True, separators=(",", ":")) + "\n")
+    text = json.dumps(_clean(data), sort_keys=True, separators=(",", ":"), allow_nan=False)
+    path.write_text(text + "\n")
 
 
 class RecordingWriter:
     def __init__(self, out_dir: Path, meta: dict, part_names: list[str]):
         self.out_dir = Path(out_dir)
         self.out_dir.mkdir(parents=True, exist_ok=True)
+        for name in RECORDING_FILES:  # never leave a previous run's files looking like this one
+            (self.out_dir / name).unlink(missing_ok=True)
         self.meta = dict(meta)
         self.part_names = list(part_names)
         self._poses: list[np.ndarray] = []

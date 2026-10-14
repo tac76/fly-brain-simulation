@@ -79,7 +79,8 @@ class BrainController:
             gf=float(hz[self.gf].mean()),
         )
         drive = self.mapper.update(dn)
-        pos = threat_position(self.encoder.threat, t_s)
+        # frame k shows the end of its interval, so report the threat where it is then
+        pos = threat_position(self.encoder.threat, t_s + INTERVAL_S)
         signals = {
             "threat_x": pos[0],
             "threat_y": pos[1],
@@ -140,24 +141,29 @@ def run_scene(
     status, reason, done = "complete", None, 0
 
     state = body.state()
-    for k in range(n_frames):
-        drive, spiking, signals = controller.drive(k * INTERVAL_S, state)
-        state = body.step(drive, STEPS_PER_INTERVAL)
-        writer.append(body.part_poses(), spiking, signals)
-        done = k + 1
-        if signals.get("active_neurons", 0) > config.run.runaway_active_neurons:
-            if "brain_runaway" not in warnings:
-                warnings.append("brain_runaway")
-        if progress:
-            progress(done / n_frames)
-        if state.flipped:
-            status, reason = "aborted", "flipped"
-        elif not state.finite:
-            status, reason = "aborted", "non_finite"
-        elif math.hypot(state.thorax[0], state.thorax[1]) > config.run.arena_radius_mm:
-            status, reason = "aborted", "out_of_arena"
-        if status == "aborted":
-            break
+    try:
+        for k in range(n_frames):
+            drive, spiking, signals = controller.drive(k * INTERVAL_S, state)
+            state = body.step(drive, STEPS_PER_INTERVAL)
+            writer.append(body.part_poses(), spiking, signals)
+            done = k + 1
+            if signals.get("active_neurons", 0) > config.run.runaway_active_neurons:
+                if "brain_runaway" not in warnings:
+                    warnings.append("brain_runaway")
+            if progress:
+                progress(done / n_frames)
+            if state.flipped:
+                status, reason = "aborted", "flipped"
+            elif not state.finite:
+                status, reason = "aborted", "non_finite"
+            elif math.hypot(state.thorax[0], state.thorax[1]) > config.run.arena_radius_mm:
+                status, reason = "aborted", "out_of_arena"
+            if status == "aborted":
+                break
+    except Exception as e:
+        # keep the partial replay, then let the caller report the error
+        writer.close("aborted", reason=f"error: {type(e).__name__}: {e}", warnings=warnings)
+        raise
 
     writer.close(status, reason=reason, warnings=warnings)
     return RunResult(status, reason, done, time.time() - t0, warnings)
