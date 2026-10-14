@@ -42,6 +42,7 @@ torchvision = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = ["slow: needs downloaded FlyWire data or long runtime"]
+filterwarnings = ["ignore::UserWarning:glfw"]  # headless: no X11 display, rendering unused
 
 [tool.ruff]
 line-length = 100
