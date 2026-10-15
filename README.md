@@ -21,9 +21,10 @@ Turning away and speeding up are driven by the brain model's output. Stimulus en
 mapping and the gait are hand-built. Walking itself is a default: with a silent brain the fly
 walks straight at a constant drive. That is not a decision of the brain.
 
-**Current state of the escape:** the response has the right direction on both sides but is still
-small. The encoding and mapping constants are not calibrated yet. Turns are measured against a
-no-brain run of the same scene, because the gait alone drifts by a few degrees.
+**Measured escape** (fast threat, r/v = 40 ms, three seeds, relative to a no-brain run of the
+same scene): threat from the left turns the fly 36–45° to the right, threat from the right turns
+it 54–57° to the left, a slow distant object causes nothing. Speed-up is modest (8–10 %).
+Method, constants and limits: [docs/calibration.md](docs/calibration.md).
 
 ## Quick start
 
