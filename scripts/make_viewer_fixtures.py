@@ -26,7 +26,16 @@ def main() -> None:
     pose = np.array([[0, 0, 1, 1, 0, 0, 0]], np.float32)
     w.append(pose, np.array([], np.uint32), {})
     w.close("aborted", reason="flipped")
-    print("fixtures written to", OUT)
+    # a real (FlyGym) run that aborts after a few frames, for the viewer's e2e test
+    from flybrain.config import load_config
+    from flybrain.loop import ConstantController, run_scene
+    from flybrain.scene import load_scene
+
+    cfg = load_config()
+    cfg.run.arena_radius_mm = 0.3
+    scene = load_scene(Path("scenes/gallery/walk.json"))
+    run_scene(scene, cfg, ConstantController((1.0, 1.0)), Path("viewer/e2e/fixtures/aborted"))
+    print("fixtures written to", OUT, "and viewer/e2e/fixtures/aborted")
 
 
 if __name__ == "__main__":
