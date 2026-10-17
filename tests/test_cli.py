@@ -45,3 +45,17 @@ def test_aborted_run_exit_2(tmp_path):
          "--config", str(cfg)],
     )
     assert r.exit_code == 2 and "out_of_arena" in r.output
+
+
+def test_serve_builds_app_on_localhost(monkeypatch, tmp_path):
+    import flybrain.cli as cli
+
+    seen = {}
+    def fake_run(app, host, port):
+        seen.update(host=host, port=port, app=app)
+
+    monkeypatch.setattr(cli, "_uvicorn_run", fake_run)
+    r = runner.invoke(app, ["serve", "--out", str(tmp_path / "jobs"), "--port", "8799"])
+    assert r.exit_code == 0, r.output
+    assert seen["host"] == "127.0.0.1" and seen["port"] == 8799
+    assert any(getattr(route, "path", "") == "/api/health" for route in seen["app"].routes)
