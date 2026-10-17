@@ -1,17 +1,18 @@
 # Calibration constants for the brain-body loop.
-# All values below are initial guesses; they are calibrated in Plan 3 (docs/calibration.md).
+# stimulus.theta_dot_0_deg_s, stimulus.theta_dot_sat_deg_s and motor.k_turn are calibrated
+# (docs/calibration.md, 2026-10-15). The other values are initial choices, not tuned.
 
 stimulus:
   r_max_hz: 150            # max Poisson rate per looming-detector neuron (Shiu et al. default)
   theta_min_deg: 5         # object must look at least this big before the eye responds
-  theta_dot_0_deg_s: 20    # expansion rate below which there is no response
-  theta_dot_sat_deg_s: 300 # expansion rate at which the response saturates
+  theta_dot_0_deg_s: 5     # expansion rate below which there is no response (calibrated)
+  theta_dot_sat_deg_s: 300 # expansion rate at which the response saturates (calibrated)
   overlap_deg: 20          # frontal/rear zone where both eyes see the object
 
 motor:
   base_drive: 0.7          # walking drive while the brain is silent (default, not a decision)
   tau_ms: 50               # smoothing of descending-neuron rates
-  k_turn: 0.01             # drive difference per Hz of right-minus-left DNa01+DNa02 activity
+  k_turn: 0.02             # drive diff per Hz of right-minus-left DNa01+DNa02 (calibrated)
   k_gf: 0.01               # giant-fiber rate scale inside tanh
   boost_max: 0.8           # max relative speed-up from the giant fiber
   drive_min: 0.0
