@@ -1,0 +1,15 @@
+Fly Brain Simulation
+Copyright (c) 2026 tac76. Code: MIT (see LICENSE). Data: see DATA_LICENSE.md.
+
+This project includes or builds on third-party work:
+
+- NeuroMechFly v2 / FlyGym (Wang-Chen et al. 2024), Apache License 2.0,
+  https://github.com/NeLy-EPFL/flygym
+  The fly meshes in viewer/public/assets/fly.glb are converted from FlyGym's NeuroMechFly model
+  (simplified with fast-simplification).
+- Drosophila whole-brain LIF model (Shiu et al. 2024), MIT License,
+  https://github.com/philshiu/Drosophila_brain_model
+  flybrain/brain.py re-implements its equations and parameters in PyTorch.
+- three.js, MIT License, https://threejs.org
+- uPlot, MIT License, https://github.com/leeoniya/uPlot
+- MuJoCo, Apache License 2.0, https://mujoco.org

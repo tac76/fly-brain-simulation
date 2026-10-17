@@ -1,0 +1,9 @@
+.venv/
+data/
+out/
+.git/
+.superpowers/
+viewer/node_modules/
+viewer/dist/
+viewer/test-results/
+**/__pycache__/
