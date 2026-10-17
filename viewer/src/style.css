@@ -108,3 +108,10 @@ canvas.arena { border-radius: 12px; background: #0e131c; cursor: crosshair; touc
 .recent ul { padding-left: 18px; font-size: .85rem; line-height: 1.8; }
 .editor-card { border-style: dashed; }
 @media (max-width: 900px) { .editor { grid-template-columns: 1fr; } }
+
+.legend { position: absolute; right: 10px; bottom: 8px; margin: 0; padding: 6px 8px; list-style: none;
+  font-size: .68rem; color: var(--muted); background: rgba(5, 7, 12, .7); border-radius: 6px; }
+.legend li { display: flex; align-items: center; gap: 6px; line-height: 1.5; }
+.legend i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.card img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; margin-bottom: 10px;
+  background: #05070c; }

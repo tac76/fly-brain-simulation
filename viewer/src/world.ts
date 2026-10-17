@@ -10,7 +10,7 @@ import {
   HemisphereLight,
   Mesh,
   MeshStandardMaterial,
-  PCFSoftShadowMap,
+  PCFShadowMap,
   PerspectiveCamera,
   RepeatWrapping,
   Scene,
@@ -91,7 +91,7 @@ export class World {
   constructor(renderer: WebGLRenderer, fly: FlyModel) {
     this.fly = fly;
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = PCFSoftShadowMap;
+    renderer.shadowMap.type = PCFShadowMap;
     this.scene.background = new Color(0x0b0f17);
     this.scene.fog = new Fog(0x0b0f17, 120, 400);
     this.zUp.rotation.x = -Math.PI / 2;

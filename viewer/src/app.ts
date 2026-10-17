@@ -2,6 +2,7 @@
 import { WebGLRenderer } from "three";
 import { BrainPanel, HeatState, loadBrainPoints } from "./brain";
 import { Charts } from "./charts";
+import { footer } from "./footer";
 import { loadFly } from "./fly";
 import { HOW_IT_WORKS, hasBrain, statusBadges } from "./overlay";
 import { Playback } from "./playback";
@@ -36,7 +37,14 @@ export async function startReplay(root: HTMLElement, entry: ReplaySource): Promi
       <canvas class="gl"></canvas>
       <div class="view world-view"><span class="view-label">fly · drag to orbit · C: follow camera</span></div>
       <div class="view brain-view"><span class="view-label">brain · 139k neurons · spikes glow</span>
-        <div class="labels"></div></div>
+        <div class="labels"></div>
+        <ul class="legend">
+          <li><i style="background:#4fd1ff"></i>looming input (LPLC2, LC4)</li>
+          <li><i style="background:#ffd700"></i>giant fiber (escape)</li>
+          <li><i style="background:#ff6b9d"></i>steering (DNa01, DNa02)</li>
+          <li><i style="background:#4a6fa5"></i>all other neurons</li>
+          <li><i style="background:#ffb347"></i>spike</li>
+        </ul></div>
     </section>
     <section class="timeline">
       <button class="play">▶</button>
@@ -49,9 +57,8 @@ export async function startReplay(root: HTMLElement, entry: ReplaySource): Promi
       </select>
     </section>
     <section class="charts"></section>
-    <aside class="how-panel" hidden></aside>
-    <footer class="foot">Derived data: FlyWire FAFB v783, CC BY-NC 4.0 ·
-      <a href="https://codex.flywire.ai" target="_blank" rel="noopener">FlyWire</a></footer>`;
+    <aside class="how-panel" hidden></aside>`;
+  root.appendChild(footer());
   root.querySelector(".run-title")!.textContent = entry.title;
   if (entry.url.startsWith("api/")) {
     const back = root.querySelector<HTMLAnchorElement>(".back")!;
@@ -99,9 +106,16 @@ export async function startReplay(root: HTMLElement, entry: ReplaySource): Promi
   root.querySelector<HTMLSelectElement>(".speed")!.addEventListener("change", (e) => {
     playback.speed = Number((e.target as HTMLSelectElement).value);
   });
+  const worldLabel = root.querySelector<HTMLElement>(".world-view .view-label")!;
   window.addEventListener("keydown", (e) => {
-    if (e.key === "c" || e.key === "C") world.toggleFollow();
-    if (e.key === " ") {
+    if (e.key === "c" || e.key === "C") {
+      const on = world.toggleFollow();
+      worldLabel.textContent = on
+        ? "fly · follow camera ON (C to switch off)"
+        : "fly · drag to orbit · C: follow camera";
+    }
+    const tag = (e.target as HTMLElement | null)?.tagName ?? "";
+    if (e.key === " " && !["SELECT", "INPUT", "BUTTON"].includes(tag)) {
       e.preventDefault();
       if (playback.playing) playback.pause();
       else playback.play();

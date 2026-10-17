@@ -1,4 +1,5 @@
 // Scene editor (local mode only): set up a threat, press Apply, watch the replay.
+import { footer } from "./footer";
 import {
   ARENA_RADIUS_MM,
   canvasToWorld,
@@ -419,6 +420,7 @@ export function startEditor(root: HTMLElement): void {
     }
   }
 
+  root.appendChild(footer());
   syncInputs();
   update();
   new ResizeObserver(resize).observe(canvas.parentElement!);
