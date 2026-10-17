@@ -23,7 +23,7 @@ walks straight at a constant drive. That is not a decision of the brain.
 
 **Measured escape** (fast threat, r/v = 40 ms, three seeds, relative to a no-brain run of the
 same scene): threat from the left turns the fly 36–45° to the right, threat from the right turns
-it 54–57° to the left, a slow distant object causes nothing. Speed-up is modest (8–10 %).
+it 54–57° to the left, a slow distant object causes nothing. The speed-up is small (4–10 %).
 Method, constants and limits: [docs/calibration.md](docs/calibration.md).
 
 ## Quick start

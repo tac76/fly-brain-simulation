@@ -67,28 +67,53 @@ default activation rate), `base_drive`, `tau_ms`, `k_gf`, `boost_max`, drive lim
 | 20 | 300 | 0.02 | -28.6 | +44.4 | +2.6 | +0.0 | 1.08 | 225/250 | no |
 | 20 | 300 | 0.04 | -45.9 | +97.2 | -4.9 | +0.0 | 1.09 | 200/250 | no |
 
-Selected: `theta_dot_0 = 5`, `theta_dot_sat = 300`, `k_turn = 0.02`.
+Selected by the pre-set rule: `theta_dot_0 = 5`, `theta_dot_sat = 300`, `k_turn = 0.02`.
+(The seed-1 table above was printed with 2 decimals; rows showing `1.10` with `no` were
+1.097–1.100.)
 
-Robustness check of the selected config on seeds 2 and 3:
+Robustness: the selected config and the runner-up on seeds 1–3, reproducible with
+`uv run python scripts/calibrate.py --grid selected --seeds 1,2,3 --out out/robustness`:
 
-| Seed | turn L | turn R | turn front | turn slow | path front |
-|---|---|---|---|---|---|
-| 2 | −39.7 | +53.9 | −25.7 | 0.0 | 1.09 |
-| 3 | −44.8 | +56.9 | +3.6 | 0.0 | 1.10 |
+| stimulus.theta_dot_0_deg_s | stimulus.theta_dot_sat_deg_s | motor.k_turn | seed | turn L | turn R | turn front | turn slow | path front | GF L/R | pass | failed |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 5 | 300 | 0.02 | 1 | -36.0 | +56.8 | +21.3 | +0.0 | 1.101 | 250/225 | yes | - |
+| 5 | 300 | 0.02 | 2 | -39.7 | +53.9 | -25.7 | +0.0 | 1.088 | 225/250 | no | front path |
+| 5 | 300 | 0.02 | 3 | -44.8 | +56.9 | +3.6 | +0.0 | 1.095 | 225/250 | no | front path |
+| 20 | 200 | 0.04 | 1 | -53.6 | +81.4 | -5.1 | +0.0 | 1.120 | 200/225 | yes | - |
+| 20 | 200 | 0.04 | 2 | -51.7 | +95.7 | -33.6 | +0.0 | 1.094 | 225/225 | no | front path |
+| 20 | 200 | 0.04 | 3 | -56.5 | +87.0 | +23.2 | +0.0 | 1.100 | 225/250 | no | front path |
+
+The speed-up line (front path ratio ≥ 1.10) **fails on seeds 2 and 3 for both candidates**
+(1.088–1.100). Across the whole grid the front path ratio spans only 1.08–1.12, about the same as
+the seed-to-seed spread of one config, so the stimulus and steering constants do not move the
+speed-up beyond noise. The selection was therefore decided by the turn criteria; the speed-up is a
+known limit (below).
 
 ## Findings and limits
 
 - **The escape direction is correct and robust:** threat from the left turns the fly right
   (−36° to −45°), from the right turns it left (+54° to +57°), across three seeds. A slow,
   distant object causes no input and no turn.
-- **Left/right asymmetry:** turns to the left are ~1.5× larger. The constants are symmetric,
-  so this comes from the wiring itself (left and right DNa01/DNa02 do not receive identical
-  input in the connectome).
+- **Left/right asymmetry:** turns to the left are 1.3–1.6× larger. The constants are symmetric
+  and the eye input is nearly equal on both sides, but the contralateral DNa01+DNa02 fire more
+  on the left (16–20 spikes per run) than on the right (12–13). Most of the asymmetry is
+  therefore likely in the wiring; a contribution from the body/gait is not ruled out.
 - **Head-on threats:** the turn direction varies with the seed (−26° to +21°). Both eyes get
-  equal input and inhibit each other's steering; small random differences decide the side.
-- **Speed-up is modest:** 8–10 % longer path than the baseline. The acceptance line
-  (≥ 1.10) is met only at seed 1 and is borderline on the others. The giant fiber fires
-  strongly but briefly, and its boost decays with the 50 ms smoothing. `k_gf`, `boost_max`
-  and `tau_ms` were not part of this grid; a follow-up could tune them.
+  equal input and inhibit each other's steering. Across the seed-1 grid the turn is to the left
+  in 15 of 18 configs, which hints at a systematic left bias rather than pure chance.
+- **Sensitivity:** `theta_dot_0 = 5 °/s` is the more sensitive of the two tested values. Walking
+  toward a stationary 8 mm object closer than about 35 mm already exceeds it and gives input;
+  `slow_far` (~50 mm away) does not test this case.
+- **`loom_front` ends with the threat engulfing the fly** (it parks 3 mm ahead and the fly walks
+  into it). The visual angle clamps at 180°, and all runs completed.
+- **Speed-up is small:** 9–10 % longer path than the baseline head-on, 4–10 % for threats from
+  the side. It fails the ≥ 1.10 acceptance line on two of three seeds. The giant fiber fires
+  strongly but briefly, and its boost decays with the 50 ms smoothing. `k_gf`, `boost_max` and
+  `tau_ms` were not in this grid; tuning them is the obvious next step.
 - **Real flies jump.** A looming threat usually triggers a giant-fiber takeoff. This fly only
   walks, so the escape shows as turning away and walking faster.
+
+## Example scenes with the calibrated config
+
+`scenes/examples/loom_left.json` / `loom_right.json` (3 s, seed 1), vs a no-brain run of the
+same scene: turn −38.0° / +55.5°, path ratio 1.057 / 1.042, giant-fiber peak 250 / 225 Hz.
