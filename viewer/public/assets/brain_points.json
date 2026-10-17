@@ -1,0 +1,68 @@
+{
+ "n": 138639,
+ "groups": [
+  "unknown",
+  "optic",
+  "central",
+  "sensory",
+  "visual_projection",
+  "ascending",
+  "descending",
+  "sensory_ascending",
+  "visual_centrifugal",
+  "motor",
+  "endocrine",
+  "LPLC2_L",
+  "LPLC2_R",
+  "LC4_L",
+  "LC4_R",
+  "DNp01_L",
+  "DNp01_R",
+  "DNa_L",
+  "DNa_R"
+ ],
+ "colors": {
+  "unknown": "#3a3f4b",
+  "optic": "#2f5d8a",
+  "central": "#4a6fa5",
+  "sensory": "#3d8a7a",
+  "visual_projection": "#5a7fc0",
+  "ascending": "#6b5b95",
+  "descending": "#8a6bb0",
+  "sensory_ascending": "#3d7a8a",
+  "visual_centrifugal": "#4a5d8a",
+  "motor": "#9a6b8a",
+  "endocrine": "#7a7a5a",
+  "LPLC2_L": "#4fd1ff",
+  "LPLC2_R": "#4fd1ff",
+  "LC4_L": "#7fffd4",
+  "LC4_R": "#7fffd4",
+  "DNp01_L": "#ffd700",
+  "DNp01_R": "#ffd700",
+  "DNa_L": "#ff6b9d",
+  "DNa_R": "#ff6b9d"
+ },
+ "highlight": [
+  "LPLC2_L",
+  "LPLC2_R",
+  "LC4_L",
+  "LC4_R",
+  "DNp01_L",
+  "DNp01_R",
+  "DNa_L",
+  "DNa_R"
+ ],
+ "bounds_um": [
+  [
+   -434.05999755859375,
+   -185.0,
+   -113.26000213623047
+  ],
+  [
+   380.7900085449219,
+   206.52000427246094,
+   164.82000732421875
+  ]
+ ],
+ "license": "Derived from FlyWire FAFB v783 (CC BY-NC 4.0)"
+}

@@ -18,7 +18,8 @@ UTF-8 JSON object, keys sorted. Always present:
 | `reason` | string \| null | why an aborted run stopped: `flipped`, `non_finite`, `out_of_arena` |
 | `warnings` | string[] | e.g. `brain_runaway` |
 
-Written by the simulation loop in addition: `scene`, `seed`, `config_hash`, `package_version`.
+Written by the simulation loop in addition: `scene`, `seed`, `config_hash`, `package_version`,
+`brain` (true if the brain model drove the run, false for no-brain runs).
 
 ## `body.bin`
 

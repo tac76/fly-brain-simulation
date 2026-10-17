@@ -134,6 +134,7 @@ def run_scene(
         "seed": scene.seed,
         "config_hash": config.hash(),
         "package_version": flybrain.__version__,
+        "brain": isinstance(controller, BrainController),
     }
     writer = RecordingWriter(out_dir, meta, body.part_names)
     n_frames = math.floor(round(scene.duration_s / INTERVAL_S, 9))
