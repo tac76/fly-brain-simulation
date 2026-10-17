@@ -123,3 +123,14 @@ def test_meta_records_whether_a_brain_ran(tmp_path, fixture_connectome):
     ctrl = make_brain_controller(SHORT, load_config(), fixture_connectome)
     run_scene(SHORT, load_config(), ctrl, tmp_path / "b")
     assert read_recording(tmp_path / "b").meta["brain"] is True
+
+
+def test_threat_signals_recorded_without_brain(tmp_path):
+    from flybrain.stimulus import threat_position
+
+    run_scene(SHORT, load_config(), ConstantController((1, 1)), tmp_path)
+    s = read_recording(tmp_path).signals
+    for k in (0, 4, 9):
+        expected = threat_position(SHORT.shadow, (k + 1) * 0.02)
+        got = [s["threat_x"][k], s["threat_y"][k], s["threat_z"][k]]
+        assert got == pytest.approx(expected, abs=1e-5)

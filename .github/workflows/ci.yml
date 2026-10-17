@@ -38,3 +38,9 @@ jobs:
         with:
           name: viewer-screenshots
           path: viewer/test-results/
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t fly-brain-simulation .

@@ -66,3 +66,32 @@ def run(
     typer.echo(line)
     if result.status != "complete":
         raise typer.Exit(2)
+
+
+def _uvicorn_run(app, host: str, port: int) -> None:
+    import uvicorn
+
+    uvicorn.run(app, host=host, port=port)
+
+
+@app.command()
+def serve(
+    port: Annotated[int, typer.Option()] = 8770,
+    host: Annotated[str, typer.Option(help="keep 127.0.0.1 unless inside a container")] = (
+        "127.0.0.1"
+    ),
+    data_dir: Annotated[Path, typer.Option()] = Path("data"),
+    out: Annotated[Path, typer.Option(help="folder for job recordings")] = Path("out/jobs"),
+    viewer: Annotated[Path, typer.Option(help="built viewer (npm run build)")] = Path(
+        "viewer/dist"
+    ),
+    device: Annotated[str, typer.Option()] = "cpu",
+) -> None:
+    """Run the local editor server: job queue + API + built viewer."""
+    from server.app import create_app
+    from server.jobs import JobQueue, default_runner
+
+    cfg = load_config()
+    queue = JobQueue(out, default_runner(data_dir, cfg, device))
+    typer.echo(f"editor: http://{host}:{port}/?editor")
+    _uvicorn_run(create_app(queue, viewer, cfg), host=host, port=port)
