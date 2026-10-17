@@ -1,6 +1,6 @@
 {
-  "title": "Baseline: no brain",
-  "description": "The same body and gait with the brain switched off. The fly walks at a constant default drive; nothing reacts.",
+  "title": "Same threat, brain switched off",
+  "description": "The exact scene of 'Threat from the left', but the brain does not drive the body. The fly walks on at its default drive and does not react: the escape in the other runs comes from the brain model.",
   "no_brain": true,
   "order": 3
 }

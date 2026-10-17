@@ -145,6 +145,9 @@ def run_scene(
     try:
         for k in range(n_frames):
             drive, spiking, signals = controller.drive(k * INTERVAL_S, state)
+            if "threat_x" not in signals:  # no-brain runs: still record where the threat is
+                pos = threat_position(scene.shadow, (k + 1) * INTERVAL_S)
+                signals = {**signals, "threat_x": pos[0], "threat_y": pos[1], "threat_z": pos[2]}
             state = body.step(drive, STEPS_PER_INTERVAL)
             writer.append(body.part_poses(), spiking, signals)
             done = k + 1
