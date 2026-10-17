@@ -126,3 +126,16 @@ def test_job_list(setup):
     a = client.post("/api/jobs", json={"scene": EXAMPLE_SCENE, "brain": False}).json()["id"]
     wait_state(client, a, {"complete"})
     assert [j["id"] for j in client.get("/api/jobs").json()] == [a]
+
+
+def test_viewer_index_is_marked_as_served_by_the_editor_server(tmp_path):
+    dist = tmp_path / "dist"
+    dist.mkdir()
+    (dist / "index.html").write_text("<html><head><title>x</title></head><body></body></html>")
+    (dist / "app.js").write_text("console.log(1)")
+    queue = JobQueue(tmp_path / "jobs", StubRunner())
+    client = TestClient(create_app(queue, viewer_dist=dist))
+    html = client.get("/").text
+    assert '<meta name="flybrain-server" content="1">' in html
+    assert client.get("/app.js").text == "console.log(1)"
+    queue.stop()

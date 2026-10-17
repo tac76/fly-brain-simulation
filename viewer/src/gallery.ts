@@ -14,7 +14,7 @@ export async function loadGallery(url = "gallery/index.json"): Promise<GalleryEn
   return (await res.json()) as GalleryEntry[];
 }
 
-export function renderGallery(root: HTMLElement, entries: GalleryEntry[]): void {
+export function renderGallery(root: HTMLElement, entries: GalleryEntry[], editor = false): void {
   // static template only; manifest values are inserted below via textContent
   // static template only; manifest values are inserted below via textContent
   root.innerHTML = `
@@ -25,6 +25,14 @@ export function renderGallery(root: HTMLElement, entries: GalleryEntry[]): void 
     </header>
     <main class="cards"></main>`;
   const cards = root.querySelector(".cards")!;
+  if (editor) {
+    const a = document.createElement("a");
+    a.className = "card editor-card";
+    a.href = "?editor";
+    a.innerHTML = `<h2>Open the editor</h2><p>Place your own threat, press Apply, and watch what the
+      brain does. Runs on this computer's server.</p><span class="tag">local</span>`; // static
+    cards.appendChild(a);
+  }
   for (const e of entries) {
     const a = document.createElement("a");
     a.className = "card";

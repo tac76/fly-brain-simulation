@@ -3,7 +3,6 @@ import { WebGLRenderer } from "three";
 import { BrainPanel, HeatState, loadBrainPoints } from "./brain";
 import { Charts } from "./charts";
 import { loadFly } from "./fly";
-import type { GalleryEntry } from "./gallery";
 import { HOW_IT_WORKS, hasBrain, statusBadges } from "./overlay";
 import { Playback } from "./playback";
 import { loadRecording } from "./recording";
@@ -18,7 +17,13 @@ function rectViewport(el: HTMLElement, canvas: HTMLCanvasElement): Viewport {
   return { x: r.left - c.left, y: c.bottom - r.bottom, width: r.width, height: r.height };
 }
 
-export async function startReplay(root: HTMLElement, entry: GalleryEntry): Promise<void> {
+export interface ReplaySource {
+  title: string;
+  url: string; // recording folder
+  brain?: boolean; // fallback if the recording has no brain flag
+}
+
+export async function startReplay(root: HTMLElement, entry: ReplaySource): Promise<void> {
   // static template only; entry text is inserted below via textContent
   root.innerHTML = `
     <header class="bar">
@@ -48,6 +53,11 @@ export async function startReplay(root: HTMLElement, entry: GalleryEntry): Promi
     <footer class="foot">Derived data: FlyWire FAFB v783, CC BY-NC 4.0 ·
       <a href="https://codex.flywire.ai" target="_blank" rel="noopener">FlyWire</a></footer>`;
   root.querySelector(".run-title")!.textContent = entry.title;
+  if (entry.url.startsWith("api/")) {
+    const back = root.querySelector<HTMLAnchorElement>(".back")!;
+    back.href = "?editor";
+    back.textContent = "← editor";
+  }
   const howPanel = root.querySelector<HTMLElement>(".how-panel")!;
   howPanel.innerHTML = HOW_IT_WORKS; // static, trusted text
   root.querySelector(".how")!.addEventListener("click", () => {
@@ -55,7 +65,7 @@ export async function startReplay(root: HTMLElement, entry: GalleryEntry): Promi
   });
 
   const [rec, fly, points] = await Promise.all([
-    loadRecording(`gallery/${entry.path}`),
+    loadRecording(entry.url),
     loadFly(`${ASSETS}fly.glb`),
     loadBrainPoints(`${ASSETS}brain_points.bin`, `${ASSETS}brain_points.json`),
   ]);

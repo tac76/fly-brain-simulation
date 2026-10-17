@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ValidationError
 
@@ -67,5 +67,14 @@ def create_app(
         return FileResponse(folder / name)
 
     if viewer_dist is not None and Path(viewer_dist).is_dir():
+        index = Path(viewer_dist) / "index.html"
+
+        @app.get("/", response_class=HTMLResponse)
+        def viewer_index() -> str:
+            # tells the viewer it runs behind this server (shows the editor) without a request
+            # that would 404 on a static host
+            marker = '<meta name="flybrain-server" content="1">'
+            return index.read_text().replace("<head>", f"<head>{marker}", 1)
+
         app.mount("/", StaticFiles(directory=viewer_dist, html=True), name="viewer")
     return app
