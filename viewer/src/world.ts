@@ -12,7 +12,6 @@ import {
   MeshStandardMaterial,
   PCFSoftShadowMap,
   PerspectiveCamera,
-  Quaternion,
   RepeatWrapping,
   Scene,
   SphereGeometry,
@@ -61,6 +60,20 @@ export function signalAt(rec: Recording, name: string, frameFloat: number): numb
   const f0 = Math.floor(f);
   const f1 = Math.min(f0 + 1, s.length - 1);
   return s[f0] + (s[f1] - s[f0]) * (f - f0);
+}
+
+/** Walking direction in the ground plane (MuJoCo coords): from thorax to head. The Thorax mesh
+ *  frame is its inertial frame, so its local axes do not point forward. */
+export function flyForward(rec: Recording, frame: number): Vector3 {
+  const t = rec.partNames.indexOf("Thorax");
+  const h = rec.partNames.indexOf("Head");
+  const f = Math.min(Math.max(Math.round(frame), 0), rec.nFrames - 1);
+  const n = rec.partNames.length;
+  const p = rec.poses;
+  const a = (f * n + t) * 7;
+  const b = (f * n + h) * 7;
+  const v = new Vector3(p[b] - p[a], p[b + 1] - p[a + 1], 0);
+  return v.lengthSq() > 0 ? v.normalize() : new Vector3(1, 0, 0);
 }
 
 export class World {
@@ -163,10 +176,9 @@ export class World {
     this.camera.position.add(delta);
     this.controls.target.add(delta);
     if (this.follow) {
-      const thorax = this.fly.part("Thorax");
-      const fwd = new Vector3(1, 0, 0).applyQuaternion(thorax.getWorldQuaternion(new Quaternion()));
-      fwd.y = 0;
-      fwd.normalize();
+      // forward in MuJoCo coords (x, y) -> three.js world (x, -z) through the z-up group
+      const f = flyForward(rec, frameFloat);
+      const fwd = new Vector3(f.x, 0, -f.y);
       const want = target.clone().addScaledVector(fwd, -14).add(new Vector3(0, 8, 0));
       this.camera.position.lerp(want, 0.08);
       this.controls.target.copy(target);

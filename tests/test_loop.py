@@ -115,3 +115,11 @@ def test_threat_signal_is_at_frame_time(tmp_path, fixture_connectome):
     # frame k shows the state at the end of interval k, i.e. t = (k + 1) * 0.02
     expected = threat_position(LOUD.shadow, 3 * 0.02)
     assert [s["threat_x"][2], s["threat_y"][2], s["threat_z"][2]] == pytest.approx(expected)
+
+
+def test_meta_records_whether_a_brain_ran(tmp_path, fixture_connectome):
+    run_scene(SHORT, load_config(), ConstantController((1, 1)), tmp_path / "nb")
+    assert read_recording(tmp_path / "nb").meta["brain"] is False
+    ctrl = make_brain_controller(SHORT, load_config(), fixture_connectome)
+    run_scene(SHORT, load_config(), ctrl, tmp_path / "b")
+    assert read_recording(tmp_path / "b").meta["brain"] is True

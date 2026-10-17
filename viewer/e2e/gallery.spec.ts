@@ -61,6 +61,23 @@ test("aborted run shows a badge and still replays", async ({ page }) => {
   await expect(page.locator(".badge", { hasText: "no brain in this run" })).toBeVisible();
 });
 
+test("dragging in the world view orbits the camera", async ({ page }) => {
+  await page.goto("./?run=loom_left&autoplay=0");
+  await ready(page);
+  await page.waitForTimeout(500);
+  const box = (await page.locator(".world-view").boundingBox())!;
+  const before = await page.screenshot({ clip: box });
+  const cx = box.x + box.width / 2;
+  const cy = box.y + box.height / 2;
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  await page.mouse.move(cx + 200, cy + 40, { steps: 10 });
+  await page.mouse.up();
+  await page.waitForTimeout(500);
+  const after = await page.screenshot({ clip: box });
+  expect(after.equals(before)).toBe(false);
+});
+
 test("narrow screens stack the panels", async ({ page }) => {
   await page.setViewportSize({ width: 600, height: 900 });
   await page.goto("./?run=loom_left&autoplay=0");
@@ -68,5 +85,7 @@ test("narrow screens stack the panels", async ({ page }) => {
   const world = await page.locator(".world-view").boundingBox();
   const brain = await page.locator(".brain-view").boundingBox();
   expect(brain!.y).toBeGreaterThanOrEqual(world!.y + world!.height - 1);
+  const chart = (await page.locator(".chart .uplot").first().boundingBox())!;
+  expect(chart.width).toBeGreaterThan(600 * 0.8); // stacked charts use the full width
   await page.screenshot({ path: "test-results/narrow.png", fullPage: true });
 });

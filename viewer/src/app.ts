@@ -4,7 +4,7 @@ import { BrainPanel, HeatState, loadBrainPoints } from "./brain";
 import { Charts } from "./charts";
 import { loadFly } from "./fly";
 import type { GalleryEntry } from "./gallery";
-import { HOW_IT_WORKS, statusBadges } from "./overlay";
+import { HOW_IT_WORKS, hasBrain, statusBadges } from "./overlay";
 import { Playback } from "./playback";
 import { loadRecording } from "./recording";
 import { World, type Viewport } from "./world";
@@ -61,7 +61,7 @@ export async function startReplay(root: HTMLElement, entry: GalleryEntry): Promi
   ]);
 
   const badges = root.querySelector(".badges")!;
-  for (const b of statusBadges(rec)) {
+  for (const b of statusBadges(rec, entry.brain)) {
     const s = document.createElement("span");
     s.className = b.startsWith("aborted") ? "badge bad" : "badge";
     s.textContent = b;
@@ -75,7 +75,7 @@ export async function startReplay(root: HTMLElement, entry: GalleryEntry): Promi
   const world = new World(renderer, fly);
   world.setRecording(rec);
   const brain = new BrainPanel(points, root.querySelector<HTMLElement>(".labels")!);
-  brain.setNoBrain(rec.spikeIndices.length === 0);
+  brain.setNoBrain(!hasBrain(rec, entry.brain));
   const heat = new HeatState(points.n);
   const charts = new Charts(root.querySelector<HTMLElement>(".charts")!, rec);
 
@@ -103,9 +103,11 @@ export async function startReplay(root: HTMLElement, entry: GalleryEntry): Promi
   const stage = root.querySelector<HTMLElement>(".stage")!;
   const resize = () => {
     renderer.setSize(stage.clientWidth, stage.clientHeight, false);
-    charts.resize(root.querySelector<HTMLElement>(".charts")!.clientWidth);
+    charts.resize();
   };
-  new ResizeObserver(resize).observe(stage);
+  const observer = new ResizeObserver(resize);
+  observer.observe(stage);
+  observer.observe(root.querySelector<HTMLElement>(".charts")!);
   resize();
 
   let last = performance.now();

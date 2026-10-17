@@ -10,6 +10,7 @@ export interface Meta {
   reason: string | null;
   warnings: string[];
   seed?: number;
+  brain?: boolean;
   scene?: { shadow?: { size_mm?: number }; [key: string]: unknown };
   [key: string]: unknown;
 }

@@ -80,8 +80,11 @@ export class Charts {
     }
   }
 
-  resize(width: number): void {
-    const w = Math.max(Math.floor(width / Math.max(this.plots.length, 1)) - 12, 200);
-    for (const { plot } of this.plots) plot.setSize({ width: w, height: 140 });
+  /** Size every plot to its own box (side by side on wide screens, stacked on narrow ones). */
+  resize(): void {
+    for (const { plot } of this.plots) {
+      const box = plot.root.parentElement!;
+      plot.setSize({ width: Math.max(box.clientWidth, 200), height: 140 });
+    }
   }
 }

@@ -20,10 +20,17 @@ export const HOW_IT_WORKS = `
 and speeding up come from the brain model's output.</p>
 <p class="small">Data: FlyWire (CC BY-NC 4.0). Model: Shiu et al. 2024. Body: NeuroMechFly v2.</p>`;
 
-export function statusBadges(rec: Recording): string[] {
+/** Whether a brain model ran: the recording's own flag, else the gallery entry's. */
+export function hasBrain(rec: Recording, galleryFlag?: boolean): boolean {
+  const flag = rec.meta.brain;
+  return typeof flag === "boolean" ? flag : (galleryFlag ?? rec.spikeIndices.length > 0);
+}
+
+export function statusBadges(rec: Recording, galleryFlag?: boolean): string[] {
   const out: string[] = [];
   if (rec.meta.status === "aborted") out.push(`aborted: ${rec.meta.reason ?? "unknown"}`);
   for (const w of rec.meta.warnings ?? []) out.push(`warning: ${w.replace(/_/g, " ")}`);
-  if (rec.spikeIndices.length === 0) out.push("no brain in this run");
+  if (!hasBrain(rec, galleryFlag)) out.push("no brain in this run");
+  else if (rec.spikeIndices.length === 0) out.push("brain silent (no input)");
   return out;
 }
