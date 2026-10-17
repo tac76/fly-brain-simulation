@@ -1,5 +1,7 @@
 # Fly Brain Simulation
 
+[![CI](https://github.com/tac76/fly-brain-simulation/actions/workflows/ci.yml/badge.svg)](https://github.com/tac76/fly-brain-simulation/actions/workflows/ci.yml)
+
 **A model of the real fruit fly brain decides how a physically simulated fly escapes a looming
 threat.**
 
