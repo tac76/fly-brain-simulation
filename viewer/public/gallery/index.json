@@ -1,0 +1,23 @@
+[
+ {
+  "id": "loom_left",
+  "title": "Threat from the left",
+  "description": "A dark object dives at the fly from its left. The left eye's looming detectors fire, the giant fiber and the right-side steering neurons respond, and the fly turns right, away from it.",
+  "path": "loom_left/",
+  "brain": true
+ },
+ {
+  "id": "loom_right",
+  "title": "Threat from the right",
+  "description": "The mirror image: the threat comes from the right and the fly turns left.",
+  "path": "loom_right/",
+  "brain": true
+ },
+ {
+  "id": "walk",
+  "title": "Baseline: no brain",
+  "description": "The same body and gait with the brain switched off. The fly walks at a constant default drive; nothing reacts.",
+  "path": "walk/",
+  "brain": false
+ }
+]

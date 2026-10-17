@@ -1,0 +1,6 @@
+{
+  "title": "Baseline: no brain",
+  "description": "The same body and gait with the brain switched off. The fly walks at a constant default drive; nothing reacts.",
+  "no_brain": true,
+  "order": 3
+}

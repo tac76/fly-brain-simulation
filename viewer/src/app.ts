@@ -1,0 +1,135 @@
+// Replay page: world + brain panel + timeline + charts for one recording.
+import { WebGLRenderer } from "three";
+import { BrainPanel, HeatState, loadBrainPoints } from "./brain";
+import { Charts } from "./charts";
+import { loadFly } from "./fly";
+import type { GalleryEntry } from "./gallery";
+import { HOW_IT_WORKS, statusBadges } from "./overlay";
+import { Playback } from "./playback";
+import { loadRecording } from "./recording";
+import { World, type Viewport } from "./world";
+
+const ASSETS = "assets/";
+
+function rectViewport(el: HTMLElement, canvas: HTMLCanvasElement): Viewport {
+  const c = canvas.getBoundingClientRect();
+  const r = el.getBoundingClientRect();
+  // WebGL viewports count from the bottom-left corner
+  return { x: r.left - c.left, y: c.bottom - r.bottom, width: r.width, height: r.height };
+}
+
+export async function startReplay(root: HTMLElement, entry: GalleryEntry): Promise<void> {
+  // static template only; entry text is inserted below via textContent
+  root.innerHTML = `
+    <header class="bar">
+      <a href="./" class="back">← all runs</a>
+      <h1 class="run-title"></h1>
+      <div class="badges"></div>
+      <button class="how">How it works</button>
+    </header>
+    <section class="stage">
+      <canvas class="gl"></canvas>
+      <div class="view world-view"><span class="view-label">fly · drag to orbit · C: follow camera</span></div>
+      <div class="view brain-view"><span class="view-label">brain · 139k neurons · spikes glow</span>
+        <div class="labels"></div></div>
+    </section>
+    <section class="timeline">
+      <button class="play">▶</button>
+      <input class="scrub" type="range" min="0" step="0.01" value="0" />
+      <span class="time">0.00 s</span>
+      <select class="speed">
+        <option value="0.1">0.1×</option><option value="0.25">0.25×</option>
+        <option value="0.5" selected>0.5×</option><option value="1">1×</option>
+        <option value="2">2×</option>
+      </select>
+    </section>
+    <section class="charts"></section>
+    <aside class="how-panel" hidden></aside>
+    <footer class="foot">Derived data: FlyWire FAFB v783, CC BY-NC 4.0 ·
+      <a href="https://codex.flywire.ai" target="_blank" rel="noopener">FlyWire</a></footer>`;
+  root.querySelector(".run-title")!.textContent = entry.title;
+  const howPanel = root.querySelector<HTMLElement>(".how-panel")!;
+  howPanel.innerHTML = HOW_IT_WORKS; // static, trusted text
+  root.querySelector(".how")!.addEventListener("click", () => {
+    howPanel.hidden = !howPanel.hidden;
+  });
+
+  const [rec, fly, points] = await Promise.all([
+    loadRecording(`gallery/${entry.path}`),
+    loadFly(`${ASSETS}fly.glb`),
+    loadBrainPoints(`${ASSETS}brain_points.bin`, `${ASSETS}brain_points.json`),
+  ]);
+
+  const badges = root.querySelector(".badges")!;
+  for (const b of statusBadges(rec)) {
+    const s = document.createElement("span");
+    s.className = b.startsWith("aborted") ? "badge bad" : "badge";
+    s.textContent = b;
+    badges.appendChild(s);
+  }
+
+  const canvas = root.querySelector<HTMLCanvasElement>("canvas.gl")!;
+  const renderer = new WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setScissorTest(true);
+  const world = new World(renderer, fly);
+  world.setRecording(rec);
+  const brain = new BrainPanel(points, root.querySelector<HTMLElement>(".labels")!);
+  brain.setNoBrain(rec.spikeIndices.length === 0);
+  const heat = new HeatState(points.n);
+  const charts = new Charts(root.querySelector<HTMLElement>(".charts")!, rec);
+
+  const playback = new Playback(rec.nFrames, rec.meta.fps || 50);
+  const playBtn = root.querySelector<HTMLButtonElement>(".play")!;
+  const scrub = root.querySelector<HTMLInputElement>(".scrub")!;
+  const timeLabel = root.querySelector<HTMLElement>(".time")!;
+  scrub.max = String(playback.last);
+  playBtn.addEventListener("click", () => (playback.playing ? playback.pause() : playback.play()));
+  scrub.addEventListener("input", () => playback.seek(Number(scrub.value)));
+  root.querySelector<HTMLSelectElement>(".speed")!.addEventListener("change", (e) => {
+    playback.speed = Number((e.target as HTMLSelectElement).value);
+  });
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "c" || e.key === "C") world.toggleFollow();
+    if (e.key === " ") {
+      e.preventDefault();
+      if (playback.playing) playback.pause();
+      else playback.play();
+    }
+  });
+
+  const worldEl = root.querySelector<HTMLElement>(".world-view")!;
+  const brainEl = root.querySelector<HTMLElement>(".brain-view")!;
+  const stage = root.querySelector<HTMLElement>(".stage")!;
+  const resize = () => {
+    renderer.setSize(stage.clientWidth, stage.clientHeight, false);
+    charts.resize(root.querySelector<HTMLElement>(".charts")!.clientWidth);
+  };
+  new ResizeObserver(resize).observe(stage);
+  resize();
+
+  let last = performance.now();
+  let first = true;
+  const loop = (now: number) => {
+    const dt = Math.min((now - last) / 1000, 0.1);
+    last = now;
+    const f = playback.tick(dt);
+    world.update(f);
+    brain.update(heat.advanceTo(rec, f));
+    const tS = (f + 1) / playback.fps;
+    charts.setTime(tS);
+    scrub.value = String(f);
+    timeLabel.textContent = `${tS.toFixed(2)} s`;
+    playBtn.textContent = playback.playing ? "❚❚" : "▶";
+    world.render(renderer, rectViewport(worldEl, canvas));
+    brain.render(renderer, rectViewport(brainEl, canvas), dt);
+    if (first) {
+      first = false;
+      document.body.dataset.ready = "true";
+    }
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+  const autoplay = new URLSearchParams(location.search).get("autoplay");
+  if (autoplay !== "0") playback.play();
+}

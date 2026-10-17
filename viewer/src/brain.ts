@@ -92,9 +92,9 @@ void main() {
   vec4 mv = modelViewMatrix * vec4(position, 1.0);
   float glow = clamp(heat, 0.0, 1.0);
   vec3 accent = mix(vec3(1.0, 0.70, 0.28), vec3(1.0, 0.95, 0.8), glow * glow);
-  vColor = mix(baseColor * (0.35 + 0.5 * highlight), accent, glow);
-  vAlpha = 0.16 + 0.35 * highlight + 0.84 * glow;
-  gl_PointSize = scale * (1.0 + 1.6 * highlight + 3.0 * glow) / -mv.z;
+  vColor = mix(baseColor * (0.8 + 0.6 * highlight), accent, glow);
+  vAlpha = 0.28 + 0.5 * highlight + 0.72 * glow;
+  gl_PointSize = scale * (1.0 + 1.5 * highlight + 3.5 * glow) / -mv.z;
   gl_Position = projectionMatrix * mv;
 }`;
 
@@ -108,12 +108,13 @@ void main() {
   gl_FragColor = vec4(vColor, vAlpha * (1.0 - 4.0 * r));
 }`;
 
-export const LABELS: Record<string, string> = {
-  LPLC2_L: "looming detectors (left eye)",
-  LPLC2_R: "looming detectors (right eye)",
-  DNp01_L: "giant fiber",
-  DNa_L: "steering (DNa, left)",
-  DNa_R: "steering (DNa, right)",
+// label text and pixel offset from the group's centroid (keeps labels from overlapping)
+export const LABELS: Record<string, [string, number, number]> = {
+  LPLC2_L: ["looming input L", -150, -48],
+  LPLC2_R: ["looming input R", 40, -48],
+  DNp01_L: ["giant fiber", -150, 30],
+  DNa_L: ["steering L", -150, 60],
+  DNa_R: ["steering R", 40, 60],
 };
 
 export class BrainPanel {
@@ -122,7 +123,7 @@ export class BrainPanel {
   private heatAttr: BufferAttribute;
   private material: ShaderMaterial;
   private centroids = new Map<string, Vector3>();
-  private labels = new Map<string, HTMLElement>();
+  private labels = new Map<string, { el: HTMLElement; dot: HTMLElement; dx: number; dy: number }>();
   private angle = 0;
   private noBrain = false;
 
@@ -165,13 +166,15 @@ export class BrainPanel {
     });
     this.scene.add(new Points(geo, this.material));
     this.scene.background = new Color(0x05070c);
-    for (const [g, text] of Object.entries(LABELS)) {
+    for (const [g, [text, dx, dy]] of Object.entries(LABELS)) {
       if (!this.centroids.has(g)) continue;
       const el = document.createElement("div");
       el.className = "brain-label";
       el.textContent = text;
-      labelLayer.appendChild(el);
-      this.labels.set(g, el);
+      const dot = document.createElement("div");
+      dot.className = "brain-dot";
+      labelLayer.append(el, dot);
+      this.labels.set(g, { el, dot, dx, dy });
     }
   }
 
@@ -185,23 +188,30 @@ export class BrainPanel {
     this.heatAttr.needsUpdate = true;
   }
 
-  render(renderer: WebGLRenderer, vp: Viewport, dtWall: number, canvasHeight: number): void {
-    this.angle += dtWall * 0.12;
-    const r = 1250;
-    this.camera.position.set(Math.sin(this.angle) * r, 120, Math.cos(this.angle) * r);
+  render(renderer: WebGLRenderer, vp: Viewport, dtWall: number): void {
+    // gentle back-and-forth sway around the frontal view keeps the brain readable
+    this.angle += dtWall * 0.25;
+    const yaw = Math.sin(this.angle) * 0.6;
+    const r = 820;
+    this.camera.position.set(Math.sin(yaw) * r, 160, Math.cos(yaw) * r);
     this.camera.lookAt(0, 0, 0);
     this.camera.aspect = vp.width / Math.max(vp.height, 1);
     this.camera.updateProjectionMatrix();
-    this.material.uniforms.scale.value = vp.height * 2.2;
+    this.material.uniforms.scale.value = vp.height * 3.0;
     renderer.setViewport(vp.x, vp.y, vp.width, vp.height);
     renderer.setScissor(vp.x, vp.y, vp.width, vp.height);
     renderer.render(this.scene, this.camera);
-    for (const [g, el] of this.labels) {
+    const scale = Math.min(vp.width / 520, 1);
+    for (const [g, { el, dot, dx, dy }] of this.labels) {
       const p = this.centroids.get(g)!.clone().project(this.camera);
-      const x = vp.x + ((p.x + 1) / 2) * vp.width;
-      const y = canvasHeight - (vp.y + ((p.y + 1) / 2) * vp.height);
-      el.style.transform = `translate(${x.toFixed(0)}px, ${y.toFixed(0)}px)`;
-      el.style.display = this.noBrain ? "none" : "";
+      const x = ((p.x + 1) / 2) * vp.width;
+      const y = ((1 - p.y) / 2) * vp.height;
+      dot.style.transform = `translate(${x.toFixed(0)}px, ${y.toFixed(0)}px)`;
+      // keep labels inside the panel
+      const lx = Math.min(Math.max(x + dx * scale, 4), vp.width - el.offsetWidth - 4);
+      const ly = Math.min(Math.max(y + dy, 24), vp.height - el.offsetHeight - 4);
+      el.style.transform = `translate(${lx.toFixed(0)}px, ${ly.toFixed(0)}px)`;
+      el.style.display = dot.style.display = this.noBrain ? "none" : "";
     }
   }
 }

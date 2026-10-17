@@ -35,12 +35,12 @@ function woodTexture(): CanvasTexture {
   const c = document.createElement("canvas");
   c.width = c.height = 512;
   const g = c.getContext("2d")!;
-  g.fillStyle = "#6e4a2f";
+  g.fillStyle = "#7a5636";
   g.fillRect(0, 0, 512, 512);
-  for (let i = 0; i < 260; i++) {
+  for (let i = 0; i < 140; i++) {
     const y = Math.random() * 512;
-    g.strokeStyle = `rgba(${40 + Math.random() * 40},${25 + Math.random() * 20},10,${0.08 + Math.random() * 0.12})`;
-    g.lineWidth = 1 + Math.random() * 3;
+    g.strokeStyle = `rgba(${50 + Math.random() * 30},${30 + Math.random() * 15},12,${0.04 + Math.random() * 0.06})`;
+    g.lineWidth = 2 + Math.random() * 6;
     g.beginPath();
     g.moveTo(0, y);
     for (let x = 0; x <= 512; x += 32) g.lineTo(x, y + Math.sin(x / 60 + i) * 4);
@@ -48,7 +48,7 @@ function woodTexture(): CanvasTexture {
   }
   const t = new CanvasTexture(c);
   t.wrapS = t.wrapT = RepeatWrapping;
-  t.repeat.set(3, 3);
+  t.repeat.set(2, 2);
   t.colorSpace = SRGBColorSpace;
   return t;
 }
@@ -113,7 +113,7 @@ export class World {
     this.zUp.add(this.sun, this.sun.target);
     this.scene.add(new HemisphereLight(0xbfd4ff, 0x3b2a1a, 0.9));
 
-    this.camera.position.set(14, 12, 18);
+    this.camera.position.set(6, 7, 11);
     this.controls = new OrbitControls(this.camera, renderer.domElement);
     this.controls.enableDamping = true;
     this.controls.minDistance = 3;
