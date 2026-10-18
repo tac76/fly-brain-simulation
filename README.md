@@ -45,7 +45,8 @@ This fly only walks.
 
 ## Try it
 
-**Gallery** (static web page; it will be on GitHub Pages once the repository is public). Locally:
+**Gallery, no install:** **[tac76.github.io/fly-brain-simulation](https://tac76.github.io/fly-brain-simulation/)** (replays of
+recorded runs; the editor needs the local server below). Locally:
 
 ```bash
 cd viewer && npm ci && npm run dev        # http://localhost:5173
